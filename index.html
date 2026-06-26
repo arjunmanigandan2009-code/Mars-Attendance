@@ -82,8 +82,6 @@
     </div>
   </div>
 
-  <div id="printReport" class="print-report" style="display:none"></div>
-
   <!-- Edit Modal -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
@@ -573,7 +571,6 @@
     }
 
     // ===== PRINT =====
-    const printReport = document.getElementById('printReport');
     document.getElementById('printBtn').addEventListener('click', () => {
       const date = document.getElementById('printDate').value;
       if (!date) { alert('Please select a date.'); return; }
@@ -591,22 +588,42 @@
         rows += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${clsLabel}</td><td>${catLabel}</td><td>${statusText}</td></tr>`;
       });
 
-      printReport.innerHTML = `
-        <h2>Mars Attendance — Daily Report</h2>
-        <div class="sub">${dateStr}</div>
-        <table>
-          <thead><tr><th>#</th><th>Name</th><th>Class</th><th>Category</th><th>Status</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-      printReport.style.display = 'block';
-      setTimeout(() => {
-        window.print();
-      }, 100);
-    });
-    window.addEventListener('afterprint', () => {
-      printReport.style.display = 'none';
-    });
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Attendance Report</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Century Gothic', sans-serif; padding: 30px; color: #000; }
+  h2 { font-size: 20px; margin-bottom: 4px; }
+  .sub { font-size: 14px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid #000; padding: 6px 10px; font-size: 12px; text-align: left; }
+  th { background: #e0e0e0; font-weight: 700; }
+</style></head><body>
+  <h2>Mars Attendance — Daily Report</h2>
+  <div class="sub">${dateStr}</div>
+  <table><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Category</th><th>Status</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+</body></html>`;
+
+      const existing = document.querySelector('iframe[name="printFrame"]');
+      if (existing) existing.remove();
+
+      const iframe = document.createElement('iframe');
+      iframe.name = 'printFrame';
+      iframe.style.position = 'fixed';
+      iframe.style.top = '0';
+      iframe.style.left = '0';
+      iframe.style.width = '1px';
+      iframe.style.height = '1px';
+      iframe.style.opacity = '0';
+      iframe.style.border = 'none';
+      iframe.style.pointerEvents = 'none';
+      document.body.appendChild(iframe);
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(html);
+      doc.close();
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
     });
 
     // ===== INIT =====
