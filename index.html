@@ -82,6 +82,8 @@
     </div>
   </div>
 
+  <div id="printReport" class="print-report" style="display:none"></div>
+
   <!-- Edit Modal -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
@@ -571,34 +573,40 @@
     }
 
     // ===== PRINT =====
+    const printReport = document.getElementById('printReport');
     document.getElementById('printBtn').addEventListener('click', () => {
       const date = document.getElementById('printDate').value;
       if (!date) { alert('Please select a date.'); return; }
 
       const key = date;
       const attendanceForDate = attendance[key] || {};
+      const dateStr = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-      let html = '<div class="print-report">';
-      html += `<h2>Mars Attendance — Daily Report</h2>`;
-      html += `<div class="sub">${new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>`;
-      html += `<table><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Category</th><th>Status</th></tr></thead><tbody>`;
-
+      let rows = '';
       students.forEach((s, i) => {
         const status = attendanceForDate[s.id];
         const statusText = status ? status.charAt(0).toUpperCase() + status.slice(1) : '-';
         const catLabel = s.category.charAt(0).toUpperCase() + s.category.slice(1);
         const clsLabel = s.class === '12' ? '12th' : '10th';
-        html += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${clsLabel}</td><td>${catLabel}</td><td>${statusText}</td></tr>`;
+        rows += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${clsLabel}</td><td>${catLabel}</td><td>${statusText}</td></tr>`;
       });
 
-      html += '</tbody></table></div>';
-
-      document.body.insertAdjacentHTML('beforeend', html);
+      printReport.innerHTML = `
+        <h2>Mars Attendance — Daily Report</h2>
+        <div class="sub">${dateStr}</div>
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Class</th><th>Category</th><th>Status</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+      printReport.style.display = 'block';
       setTimeout(() => {
         window.print();
-        const el = document.querySelector('.print-report');
-        if (el) el.remove();
-      }, 200);
+      }, 100);
+    });
+    window.addEventListener('afterprint', () => {
+      printReport.style.display = 'none';
+    });
     });
 
     // ===== INIT =====
