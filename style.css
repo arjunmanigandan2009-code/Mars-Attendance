@@ -1201,6 +1201,25 @@ body {
   transform: scale(0.95);
 }
 
+/* ===== Footer ===== */
+.footer {
+  text-align: center;
+  padding: 20px 0 10px;
+  font-size: 13px;
+  color: var(--text2);
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+.footer-link {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
 /* ===== Selection ===== */
 ::selection {
   background: var(--primary);

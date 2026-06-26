@@ -15,7 +15,7 @@
     <div class="header">
       <div>
         <h1>Mars Attendance</h1>
-        <div class="subtitle">Created by ARJUN M</div>
+        <div class="subtitle"><a href="https://arjunmanigandan.vercel.app/" target="_blank" rel="noopener" class="footer-link">Created by ARJUN M</a></div>
       </div>
       <button class="theme-btn" id="themeToggle" title="Toggle theme">&#9790;</button>
     </div>
@@ -79,6 +79,9 @@
         <input type="date" id="printDate" class="print-date">
         <button class="print-btn" id="printBtn">Print</button>
       </div>
+    </div>
+    <div class="footer">
+      Mars Attendance &copy;2026 All Rights Reserved &mdash; <a href="https://arjunmanigandan.vercel.app/" target="_blank" rel="noopener" class="footer-link">Contact Developer</a>
     </div>
   </div>
 
@@ -600,7 +603,7 @@
 </style></head><body>
   <h2>Mars Attendance — Daily Report</h2>
   <div class="sub">${dateStr}</div>
-  <table><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Category</th><th>Status</th></tr></thead>
+  <table><thead><tr><th>Roll.No</th><th>Name</th><th>Class</th><th>Category</th><th>Status</th></tr></thead>
   <tbody>${rows}</tbody></table>
 </body></html>`;
 
