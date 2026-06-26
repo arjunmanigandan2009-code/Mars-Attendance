@@ -360,7 +360,6 @@ body {
 .date-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -383,6 +382,9 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .cal-btn {
@@ -435,7 +437,7 @@ body {
   color: var(--primary);
   font-size: 22px;
   cursor: pointer;
-  padding: 6px 14px;
+  padding: 2px 14px 8px;
   border-radius: var(--radius-xs);
   transition: all 3s, transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-spring);
   font-weight: 700;
@@ -472,8 +474,15 @@ body {
 }
 
 .date-nav .today-btn:active {
-  transform: scale(0.94);
+  transform: scale(0.85);
   transition-duration: 0.1s;
+}
+
+.date-nav-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
 }
 
 /* ===== Student List ===== */
@@ -1096,19 +1105,110 @@ body {
   }
 
   .date-nav {
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 10px 12px;
   }
 
-  .date-nav .date-label {
-    order: -1;
-    width: 100%;
-    text-align: center;
+  .date-nav .date-center {
+    order: 0;
+    width: auto;
+    justify-content: flex-start;
+    position: static;
+    transform: none;
+    flex: 1;
+  }
+
+  .date-nav-btns {
+    width: auto;
+    justify-content: flex-end;
+    margin-left: 0;
   }
 
   .modal {
     padding: 20px;
   }
+
+  .print-row {
+    flex-direction: column;
+  }
+
+  .print-date {
+    width: 100%;
+  }
+}
+
+/* ===== Print ===== */
+.print-section {
+  margin-top: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+  animation: fadeSlideUp 0.6s var(--ease-out) 0.35s both;
+  transition: all 3s, transform 0.35s var(--ease-smooth), box-shadow 0.35s var(--ease-smooth);
+}
+
+.print-section h2 {
+  font-size: 16px;
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.print-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.print-date {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 3s, transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+
+.print-date:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.print-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+
+.print-btn:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.print-btn:active {
+  transform: scale(0.95);
+}
+
+@media print {
+  body > *:not(.print-report) { display: none !important; }
+  .print-report { display: block !important; padding: 20px; color: #000; }
+  .print-report table { width: 100%; border-collapse: collapse; }
+  .print-report th, .print-report td { border: 1px solid #000; padding: 6px 10px; font-size: 12px; text-align: left; color: #000; }
+  .print-report th { background: #f0f0f0; font-weight: 700; }
+  .print-report h2 { font-size: 18px; margin-bottom: 4px; color: #000; }
+  .print-report .sub { font-size: 13px; margin-bottom: 12px; color: #000; }
 }
 
 /* ===== Selection ===== */

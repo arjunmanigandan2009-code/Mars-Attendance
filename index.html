@@ -47,16 +47,14 @@
 
     <!-- Date navigation -->
     <div class="date-nav">
-      <button id="prevDay">&larr;</button>
       <div class="date-center">
         <span class="date-label" id="dateLabel"></span>
         <div class="cal-wrap">
           <input type="date" id="datePicker" class="cal-btn" title="Select date">
         </div>
       </div>
-      <div>
+      <div class="date-nav-btns">
         <button class="today-btn" id="todayBtn">Today</button>
-        <button id="nextDay">&rarr;</button>
       </div>
     </div>
 
@@ -72,6 +70,15 @@
         <button class="report-tab" data-report="monthly">Monthly</button>
       </div>
       <div id="reportContent"></div>
+    </div>
+
+    <!-- Print -->
+    <div class="print-section">
+      <h2>Print Attendance</h2>
+      <div class="print-row">
+        <input type="date" id="printDate" class="print-date">
+        <button class="print-btn" id="printBtn">Print</button>
+      </div>
     </div>
   </div>
 
@@ -414,14 +421,6 @@
     });
 
     // Date nav
-    document.getElementById('prevDay').addEventListener('click', () => {
-      currentDate.setDate(currentDate.getDate() - 1);
-      render();
-    });
-    document.getElementById('nextDay').addEventListener('click', () => {
-      currentDate.setDate(currentDate.getDate() + 1);
-      render();
-    });
     document.getElementById('todayBtn').addEventListener('click', () => {
       currentDate = new Date();
       render();
@@ -570,6 +569,37 @@
       }
       return days;
     }
+
+    // ===== PRINT =====
+    document.getElementById('printBtn').addEventListener('click', () => {
+      const date = document.getElementById('printDate').value;
+      if (!date) { alert('Please select a date.'); return; }
+
+      const key = date;
+      const attendanceForDate = attendance[key] || {};
+
+      let html = '<div class="print-report">';
+      html += `<h2>Mars Attendance — Daily Report</h2>`;
+      html += `<div class="sub">${new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>`;
+      html += `<table><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Category</th><th>Status</th></tr></thead><tbody>`;
+
+      students.forEach((s, i) => {
+        const status = attendanceForDate[s.id];
+        const statusText = status ? status.charAt(0).toUpperCase() + status.slice(1) : '-';
+        const catLabel = s.category.charAt(0).toUpperCase() + s.category.slice(1);
+        const clsLabel = s.class === '12' ? '12th' : '10th';
+        html += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${clsLabel}</td><td>${catLabel}</td><td>${statusText}</td></tr>`;
+      });
+
+      html += '</tbody></table></div>';
+
+      document.body.insertAdjacentHTML('beforeend', html);
+      setTimeout(() => {
+        window.print();
+        const el = document.querySelector('.print-report');
+        if (el) el.remove();
+      }, 200);
+    });
 
     // ===== INIT =====
     render();
