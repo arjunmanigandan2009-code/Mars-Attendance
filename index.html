@@ -58,6 +58,12 @@
       </div>
     </div>
 
+    <!-- Session selector -->
+    <div class="session-tabs" id="sessionTabs">
+      <button class="session-tab active" data-session="morning">☀️ Morning</button>
+      <button class="session-tab" data-session="afternoon">🌤️ Afternoon</button>
+    </div>
+
     <!-- Student list -->
     <div class="student-list" id="studentList"></div>
 
@@ -80,6 +86,7 @@
         <button class="print-btn" id="printBtn">Print</button>
       </div>
     </div>
+    <div id="printReport"></div>
     <div class="footer">
       Mars Attendance &copy;2026 All Rights Reserved &mdash; <a href="https://arjunmanigandan.vercel.app/" target="_blank" rel="noopener" class="footer-link">Contact Developer</a>
     </div>
@@ -142,6 +149,7 @@
     let attendance = loadData('marsAttendance', {});
     let currentDate = new Date();
     let currentFilter = 'all';
+    let currentSession = 'morning';
     let currentReport = 'daily';
     let isDark = localStorage.getItem('marsTheme') === 'dark';
     let editingId = null;
@@ -190,6 +198,37 @@
       return { start, end };
     }
 
+    // ===== SESSION HELPERS =====
+    function getSessionAtt(dateKey, studentId, session) {
+      const dayData = attendance[dateKey];
+      if (!dayData) return null;
+      const val = dayData[studentId];
+      if (val === undefined) return null;
+      if (typeof val === 'string') return val;
+      return val[session] || null;
+    }
+
+    function setSessionAtt(dateKey, studentId, session, status) {
+      if (!attendance[dateKey]) attendance[dateKey] = {};
+      const dayData = attendance[dateKey];
+      const current = dayData[studentId];
+
+      if (!current || typeof current === 'string') {
+        const oldStatus = typeof current === 'string' ? current : null;
+        dayData[studentId] = session === 'morning'
+          ? { morning: status, afternoon: oldStatus }
+          : { morning: oldStatus, afternoon: status };
+      } else {
+        current[session] = status;
+      }
+
+      const d = dayData[studentId];
+      if ((!d.morning || d.morning === null) && (!d.afternoon || d.afternoon === null)) {
+        delete dayData[studentId];
+      }
+      if (Object.keys(dayData).length === 0) delete attendance[dateKey];
+    }
+
     // ===== STUDENT CRUD =====
     function saveStudents() {
       localStorage.setItem('marsStudents', JSON.stringify(students));
@@ -218,9 +257,9 @@
       Object.keys(attendance).forEach(dateKey => {
         if (attendance[dateKey][id] !== undefined) {
           delete attendance[dateKey][id];
-          if (Object.keys(attendance[dateKey]).length === 0) {
-            delete attendance[dateKey];
-          }
+        }
+        if (attendance[dateKey] && Object.keys(attendance[dateKey]).length === 0) {
+          delete attendance[dateKey];
         }
       });
       localStorage.setItem('marsAttendance', JSON.stringify(attendance));
@@ -291,7 +330,7 @@
         studentList.innerHTML = `<div class="empty-state">No students in this category.</div>`;
       } else {
         studentList.innerHTML = filtered.map(s => {
-          const status = attendance[key]?.[s.id] || null;
+          const status = getSessionAtt(key, s.id, currentSession);
           const catBadge = s.category === 'both' ? 'H+B' : s.category ? s.category.charAt(0).toUpperCase() + s.category.slice(1) : '-';
           const catClass = s.category ? `badge-${s.category}` : 'badge-hostel';
           const clsLabel = s.class === '12' ? '12th' : '10th';
@@ -393,15 +432,9 @@
 
       if (action === 'present' || action === 'absent' || action === 'holiday') {
         const key = toKey(currentDate);
-        if (!attendance[key]) attendance[key] = {};
-        const current = attendance[key][id];
+        const current = getSessionAtt(key, id, currentSession);
         const newStatus = current === action ? null : action;
-        if (current === action) {
-          delete attendance[key][id];
-          if (Object.keys(attendance[key]).length === 0) delete attendance[key];
-        } else {
-          attendance[key][id] = action;
-        }
+        setSessionAtt(key, id, currentSession, newStatus);
         localStorage.setItem('marsAttendance', JSON.stringify(attendance));
         slideActiveToFront(card, newStatus);
         renderReport();
@@ -411,6 +444,16 @@
       } else if (action === 'delete') {
         deleteStudent(id);
       }
+    });
+
+    // Session tabs
+    document.getElementById('sessionTabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('.session-tab');
+      if (!btn) return;
+      document.querySelectorAll('.session-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentSession = btn.dataset.session;
+      render();
     });
 
     // Category filter
@@ -465,12 +508,13 @@
         let holiday = 0;
         days.forEach(d => {
           const key = toKey(d);
-          if (attendance[key] && attendance[key][s.id]) {
-            const status = attendance[key][s.id];
+          const mStatus = getSessionAtt(key, s.id, 'morning');
+          const aStatus = getSessionAtt(key, s.id, 'afternoon');
+          [mStatus, aStatus].forEach(status => {
             if (status === 'present') present++;
             else if (status === 'absent') absent++;
             else if (status === 'holiday') holiday++;
-          }
+          });
         });
         return { ...s, present, absent, holiday, total: present + absent };
       });
@@ -579,73 +623,31 @@
       if (!date) { alert('Please select a date.'); return; }
 
       const key = date;
-      const attendanceForDate = attendance[key] || {};
       const dateStr = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
       let rows = '';
       students.forEach((s, i) => {
-        const status = attendanceForDate[s.id];
-        const statusText = status ? status.charAt(0).toUpperCase() + status.slice(1) : '-';
+        const mStatus = getSessionAtt(key, s.id, 'morning');
+        const aStatus = getSessionAtt(key, s.id, 'afternoon');
+        const mText = mStatus ? mStatus.charAt(0).toUpperCase() + mStatus.slice(1) : '-';
+        const aText = aStatus ? aStatus.charAt(0).toUpperCase() + aStatus.slice(1) : '-';
         const catLabel = s.category.charAt(0).toUpperCase() + s.category.slice(1);
         const clsLabel = s.class === '12' ? '12th' : '10th';
-        rows += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${clsLabel}</td><td>${catLabel}</td><td>${statusText}</td></tr>`;
+        rows += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${clsLabel}</td><td>${catLabel}</td><td>${mText}</td><td>${aText}</td></tr>`;
       });
 
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Attendance Report</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Century Gothic', sans-serif; padding: 30px; color: #000; }
-  h2 { font-size: 20px; margin-bottom: 4px; }
-  .sub { font-size: 14px; margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { border: 1px solid #000; padding: 6px 10px; font-size: 12px; text-align: left; }
-  th { background: #e0e0e0; font-weight: 700; }
-</style></head><body>
-  <h2>Mars Attendance — Daily Report</h2>
-  <div class="sub">${dateStr}</div>
-  <table><thead><tr><th>Roll.No</th><th>Name</th><th>Class</th><th>Category</th><th>Status</th></tr></thead>
-  <tbody>${rows}</tbody></table>
-</body></html>`;
+      document.getElementById('printReport').innerHTML = `
+        <h2>Mars Attendance &mdash; Daily Report</h2>
+        <div class="print-sub">${dateStr}</div>
+        <table>
+          <thead><tr><th>Roll.No</th><th>Name</th><th>Class</th><th>Category</th><th>Morning</th><th>Afternoon</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
 
-      const existing = document.querySelector('iframe[name="printFrame"]');
-      if (existing) existing.remove();
-
-      const iframe = document.createElement('iframe');
-      iframe.name = 'printFrame';
-      iframe.style.position = 'fixed';
-      iframe.style.top = '0';
-      iframe.style.left = '0';
-      iframe.style.width = '1px';
-      iframe.style.height = '1px';
-      iframe.style.opacity = '0';
-      iframe.style.border = 'none';
-      iframe.style.pointerEvents = 'none';
-      document.body.appendChild(iframe);
-      const doc = iframe.contentWindow.document;
-      doc.open();
-      doc.write(html);
-      doc.close();
-      iframe.contentWindow.focus();
-
-      if (typeof iframe.contentWindow.print === 'function') {
-        iframe.contentWindow.print();
-      } else {
-        const win = window.open('', '_blank');
-        if (win) {
-          win.document.write(html);
-          win.document.close();
-        } else {
-          const blob = new Blob([html], { type: 'text/html' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'Attendance_' + date + '.html';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }
-      }
+      setTimeout(() => {
+        window.print();
+      }, 100);
     });
 
     // ===== INIT =====

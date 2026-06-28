@@ -485,6 +485,49 @@ body {
   margin-left: auto;
 }
 
+/* ===== Session Tabs ===== */
+.session-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  animation: fadeSlideUp 0.6s var(--ease-out) 0.12s both;
+}
+
+.session-tab {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s, transform 0.35s var(--ease-spring), box-shadow 0.35s var(--ease-spring);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  font-family: inherit;
+}
+
+.session-tab.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 16px var(--primary-glow);
+}
+
+.session-tab:hover:not(.active) {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--primary-glow);
+}
+
+.session-tab:active:not(.active) {
+  transform: translateY(0) scale(0.95);
+  transition-duration: 0.1s;
+}
+
 /* ===== Student List ===== */
 .student-list {
   display: flex;
@@ -1218,6 +1261,48 @@ body {
 
 .footer-link:hover {
   text-decoration: underline;
+}
+
+/* ===== Print Report (hidden on screen) ===== */
+#printReport {
+  display: none;
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  body * { visibility: hidden; }
+  #printReport, #printReport * { visibility: visible; }
+  #printReport {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    padding: 30px;
+    font-family: 'Century Gothic', sans-serif;
+    color: #000;
+    background: #fff;
+  }
+  #printReport h2 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  #printReport .print-sub {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  #printReport table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  #printReport th, #printReport td {
+    border: 1px solid #000;
+    padding: 6px 10px;
+    font-size: 12px;
+    text-align: left;
+  }
+  #printReport th {
+    background: #e0e0e0;
+    font-weight: 700;
+  }
 }
 
 /* ===== Selection ===== */
